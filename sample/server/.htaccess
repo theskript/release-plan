@@ -1,0 +1,3 @@
+# rules kept on the server
+Options -Indexes
+ErrorDocument 404 /not-found.html
