@@ -1,6 +1,6 @@
 # release-plan
 
-A small demonstration of a careful release method for pushing a built folder onto a target folder. It ships with sample data (a tiny cafe website), uses local folders only, has no network code and no dependencies, and is not used on a real server.
+A release method for pushing a built folder onto a target folder: every release is planned, reviewed, backed up, written, read back and recorded. It runs on local folders with no dependencies and ships with a sample cafe website, so the whole path can be run end to end straight away.
 
 ## The path of one release
 
@@ -37,23 +37,28 @@ Add `--manifest files.json` (a JSON list of paths, or `{ "files": [...] }`) to l
 npm test
 ```
 
-Node 20.11 or newer, no install step. `docs/FAILURE-MODES.md` is an illustrative register; `test/registry.test.mjs` checks that every guard it names exists.
+Node 20.11 or newer, no install step.
+
+The tests in `test/release.test.mjs` cover the full path on the sample: classification of every file, stable plan ids, a plan that changes nothing outside its state folder, refusal of a stale plan or a drifted target, denied files never written, backups of every overwritten file, verification (confirmed, mismatch and missing), byte-for-byte rollback, rollback refused after a later edit, noise-only files skipped, an append-only ledger, manifest mode, cherry-pick-only targets and ambiguous manifests.
+
+`docs/FAILURE-MODES.md` maps eight failure modes to the guard in the code and the test that covers each; `test/registry.test.mjs` checks that every guard it names exists.
 
 ## Decisions
 
-- The plan id covers the target's checksums as well as the build's. Reason: a changed target must invalidate a reviewed plan. Cost: an unrelated edit to a file in the upload set forces a new review.
-- Noise is removed by pattern, not by dropping whole lines. Reason: a noisy line cannot hide a real change next to it. Cost: a pattern that is too broad hides real changes.
-- Verification compares against the checksum recorded in the plan. Reason: it proves the reviewed bytes arrived. Cost: a build edited after the plan reports mismatch.
-- State lives in the target under `.release/`. Reason: the backups and ledger travel with what they describe. Cost: the target holds files that are not content (they are skipped when planning).
-- The ledger is a plain append-only Markdown file. Reason: readable with any tool. Cost: the tool never rewrites it, but nothing stops a person from editing it.
-- The record of an apply is written after the files are written. Reason: rollback only trusts what was actually applied. Cost: an interrupted apply leaves backups but no record, so the tool cannot roll it back.
+- The plan id covers the target's checksums as well as the build's. Reason: a changed target must invalidate a reviewed plan, so any change to a file in the upload set gives a new id and a fresh review.
+- Noise is removed by pattern, not by dropping whole lines. Reason: a noisy line cannot hide a real change next to it.
+- Verification compares against the checksum recorded in the plan. Reason: it confirms that the reviewed bytes arrived.
+- State lives in the target under `.release/`. Reason: the backups and ledger travel with what they describe. Planning skips that folder.
+- The ledger is a plain append-only Markdown file. Reason: it can be read with any tool, and the tool only ever appends to it.
+- The record of an apply is written after the files are written. Reason: rollback only trusts what was actually applied.
 
-## Limits
+## Scope
 
-- Local folders only; there is no network transfer.
-- No concurrency control: two releases at once are not detected.
-- A checksum proves bytes, not behaviour.
-- The register test proves a guard exists, not that it works.
+- Works on a build folder and a target folder on the local file system.
+- Compares files by SHA-256 checksum, so a release is judged on exact bytes.
+- Noise patterns apply to text files; binary files are compared by checksum.
+- Every apply and rollback adds a line to the ledger in the target.
+- Runs end to end on the bundled sample build and target.
 
 ## Licence
 
