@@ -16,6 +16,8 @@ A release method for pushing a built folder onto a target folder: every release 
 
 ## Usage
 
+Requires Node.js 20 or later.
+
 Run the demo on a copy, because `apply` changes the target:
 
 ```sh
@@ -59,6 +61,13 @@ The tests in `test/release.test.mjs` cover the full path on the sample: classifi
 - Noise patterns apply to text files; binary files are compared by checksum.
 - Every apply and rollback adds a line to the ledger in the target.
 - Runs end to end on the bundled sample build and target.
+
+## Limits
+
+- Local folders only; there is no network transfer.
+- No concurrency control: two releases at once are not detected.
+- A checksum proves bytes, not behaviour.
+- The register test proves a guard exists, not that it works.
 
 ## Licence
 
